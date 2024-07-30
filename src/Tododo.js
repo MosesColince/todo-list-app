@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const priorityColors = {
     High: 'red',
@@ -11,17 +12,41 @@ function Tododo() {
     const [info, setInfo] = useState("");
     const [priority, setPriority] = useState("Low");
     const [searchTerm, setSearchTerm] = useState("");
+    const [editTodo, setEditTodo] = useState("");
+    const [editPriority, setEditPriority] = useState("");
+    const [editUserId, setEditUserId] = useState(null);
+    
 
-    useEffect(() => {
+   /* useEffect(() => {
         const storedFileList = JSON.parse(localStorage.getItem('fileList')) || [];
         setFileList(storedFileList);
     }, []);
-
+*/
     useEffect(() => {
-        localStorage.setItem('fileList', JSON.stringify(fileList));
-    }, [fileList]);
+        FileList();
+    }, [])
 
-    const addTodo = () => {
+    const fetchTodo = async (id) => {
+        try {
+            const response = await axios.get(`http://localhost:3002/users/${id}`);
+            setInfo(response.data);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            setInfo(null);
+        }
+    };
+
+    const addTodo = async () => {
+        try {
+            await axios.post('http://localhost:3002/users', { info, priority});
+            fetchTodo();
+            setInfo('');
+            setPriority('');
+        } catch (error) {
+            console.error('Error adding user:', error);
+        }
+    };
+   /* const addTodo = () => {
         if (!info.trim()) return;
 
         const newTodo = {
@@ -33,12 +58,34 @@ function Tododo() {
         setFileList([...fileList, newTodo]);
         setInfo("");
     };
+*/
 
+const deleteTodo = async (id) => {
+    try {
+        await axios.delete(`http://localhost:3002/users/${id}`);
+        fetchTodo();
+    } catch (error) {
+        console.error('Error deleting user:', error);
+    }
+};
+/*
     const deleteTodo = (id) => {
         const newList = fileList.filter((todo) => todo.id !== id);
         setFileList(newList);
     };
-
+*/
+const updateTodo = async (id) => {
+    try {
+        await axios.put(`http://localhost:3002/users/${id}`, { todo: editTodo, priority: editPriority });
+        setEditUserId(null);
+        setEditTodo('');
+        setEditPriority('');
+        fetchTodo();
+    } catch (error) {
+        console.error('Error updating user:', error);
+    }
+};
+/*
     const updateTodo = (id, updatedTodo) => {
         const updatedList = fileList.map(todo => {
             if (todo.id === id) {
@@ -48,7 +95,13 @@ function Tododo() {
         });
         setFileList(updatedList);
     };
+*/
 
+/*const handleEditClick = (user) => {
+    setEditUserId(user.id);
+    setEditTodo(user.info);
+    setEditPriority(user.priority);
+};*/
     const handlePriorityColor = (priority) => {
         return priorityColors[priority] || 'black';
     };
